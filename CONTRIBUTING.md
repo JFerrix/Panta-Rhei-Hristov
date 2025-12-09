@@ -2,7 +2,7 @@
 
 ###### _(Note that this has been largely borrowed from Delta-V. In the future, we will replace most of these examples with examples based on our native developments. For now, this is a placeholder. - M3739)_
 
-Generally we follow [upstream's PR guidelines](https://docs.spacestation14.com/en/general-development/codebase-info/pull-request-guidelines.html) for code quality and such.
+Generally we follow [Wizden's PR guidelines](https://docs.spacestation14.com/en/general-development/codebase-info/pull-request-guidelines.html) for code quality and such.
 
 Importantly do not make webedits, copied verbatim from above:
 > Do not use GitHub's web editor to create PRs. PRs submitted through the web editor may be closed without review.
@@ -112,14 +112,15 @@ Double-check your diff on GitHub before submitting: look for unintended commits 
 Additionally for long-lasting PRs, if you see `RobustToolbox` in the changed files you have to revert it, use `git checkout upstream/master RobustToolbox` (replacing `upstream` with the name of your Floof-Station/Panta-Rhei remote)
 
 # Changelogs
+###### _(Update this section again once we finish the changelog stuff. - M3739)_
 
-By default any changelogs goes in the Panta Rhei changelog, you can use the DeltaV admin changelog by putting `DELTAVADMIN:` in a line after `:cl:`.
+By default any changelogs goes in the Panta Rhei changelog, you can use the Panta Rhei admin changelog by putting `DELTAVADMIN:` in a line after `:cl:`.
 
 Do not use `ADMIN:` as **it will mangle** the upstream admin changelog!
 
 # Additional resources
 
-If you are new to contributing to SS14 in general, have a look at the [SS14 docs](https://docs.spacestation14.io/) or ask for help in `#contribution-help` on [Discord](https://discord.gg/deltav)!
+If you are new to contributing to SS14 in general, have a look at the [SS14 docs](https://docs.spacestation14.io/) or ask for help in `#Development` on [Discord](https://discord.gg/pmxfNx8gRS)!
 
 ## AI-Generated Content
 Code, sprites and any other AI-generated content is not allowed to be submitted to the repository.

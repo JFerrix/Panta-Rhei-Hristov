@@ -15,7 +15,8 @@ Space Station 14 is a remake of SS13 that runs on [Robust Toolbox](https://githu
 #### Panta Rhei
 <div class="header" align="center">
 
-##### _To be determined. - M3739_
+[Discord](https://discord.gg/pmxfNx8gRS)
+##### _ The rest is to be determined. - M3739_
 
 </div>
 
@@ -44,7 +45,7 @@ Additionally, see these resources for license and attribution information:
 
 We are happy to accept contributions from anybody. Get in Discord if you want to help. We've got a [list of issues](https://github.com/Floof-Station/Panta-Rhei/issues) that need to be done and anybody can pick them up. Don't be afraid to ask for help either!
 
-Make sure to read [CONTRIBUTING.md](/CONTRIBUTING.md) if you are new to Delta-V!
+Make sure to read [CONTRIBUTING.md](/CONTRIBUTING.md) if you are new to Panta Rhei!
 
 ## Building
 
