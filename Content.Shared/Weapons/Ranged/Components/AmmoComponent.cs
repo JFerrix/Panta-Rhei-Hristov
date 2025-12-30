@@ -12,7 +12,7 @@ public partial class AmmoComponent : Component, IShootable
 {
     // Muzzle flash stored on ammo because if we swap a gun to whatever we may want to override it.
 
-    [DataField]
+    [DataField("MuzzleFlash")]
     public EntProtoId? MuzzleFlash = "MuzzleFlashEffect";
 }
 
