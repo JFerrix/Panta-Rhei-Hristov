@@ -9,3 +9,6 @@
 
 - type: Tag
   id: NoPaint
+
+- type: Tag
+  id: ShirtlessClothing

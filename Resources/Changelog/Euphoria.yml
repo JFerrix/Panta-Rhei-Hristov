@@ -41,3 +41,41 @@ Entries:
       message: This test is a fix to a missing implementation.
   id: 5
   time: '2025-12-13T23:04:13.0000000+00:00'
+- author: SyaoranFox
+  changes:
+    - type: Add
+      message: Consent System V1
+  id: 6
+  time: '2026-01-05T20:53:30.0000000+00:00'
+- author: Mnemotechnician
+  changes:
+    - type: Add
+      message: Ported the "crawling under furniture" system
+  id: 7
+  time: '2026-01-06T21:33:21.0000000+00:00'
+- author: SyaoranFox
+  changes:
+    - type: Add
+      message: FTL for Consent page
+    - type: Add
+      message: ReadConsent tag
+    - type: Add
+      message: markup support for consent pages
+  id: 8
+  time: '2026-01-07T02:24:44.0000000+00:00'
+- author: Mnemotechnician
+  changes:
+    - type: Add
+      message: Foo
+    - type: Tweak
+      message: Bar
+  id: 9
+  time: '2026-01-08T20:59:27.0000000+00:00'
+- author: SyaoranFox
+  changes:
+    - type: Add
+      message: Vampirism
+    - type: Add
+      message: Being a living blood bag
+  id: 10
+  time: '2026-01-09T07:08:04.0000000+00:00'
