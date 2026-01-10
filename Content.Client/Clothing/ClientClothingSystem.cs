@@ -122,7 +122,7 @@ public sealed class ClientClothingSystem : ClothingSystem
             speciesId = helmetComponent.ReplacementRace;
 
         // first attempt to get species specific data.
-        if (speciesId != null)
+        if (speciesId != null && layers == null)
             item.ClothingVisuals.TryGetValue($"{args.Slot}-{speciesId}", out layers);
 
         // if that returned nothing, attempt to find generic data
