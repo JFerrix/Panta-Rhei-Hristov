@@ -103,7 +103,19 @@ public sealed class ClientClothingSystem : ClothingSystem
 
         List<PrototypeLayerData>? layers = null;
 
+        // Floof changes (This could be done by modifying the Snouthelmetcomponent code but for the sake of not messing with that I have to redo it here)
+        var headId = inventory.SpeciesId;
+
+        if (TryComp(args.Equipee, out MarkingRenderSystemComponent? helmetComponent))
+            headId = helmetComponent.ReplacementRace;
+
+        // There is no need for a default case scenario as the worst case is literally just "It does nothing"
+        if (headId != null)
+            item.ClothingVisuals.TryGetValue($"{args.Slot}-{headId}", out layers);
+
+
         // Begin DeltaV Additions - IPC snouts
+        // Floof comment: This is bad on so many levels. You are changing the entire speciesID just to fix the helmet as collateral damage
         var speciesId = inventory.SpeciesId;
 
         if (TryComp(args.Equipee, out SnoutHelmetComponent? helmetComponent) && helmetComponent.EnableAlternateHelmet)

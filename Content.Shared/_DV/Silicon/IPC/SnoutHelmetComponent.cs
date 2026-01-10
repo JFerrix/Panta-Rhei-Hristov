@@ -6,6 +6,7 @@ public sealed partial class SnoutHelmetComponent : Component
     [DataField]
     public bool EnableAlternateHelmet;
 
-    [DataField(readOnly: true)]
-    public string? ReplacementRace;
+    //Floof Change: Removed Readonly and added default initialized value. Permits runtime changes (Remove default initializer when finished)
+    [DataField]
+    public string? ReplacementRace = "human";
 }
