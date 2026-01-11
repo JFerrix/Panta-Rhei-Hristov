@@ -82,13 +82,6 @@
     state: eyes
 
 - type: humanoidBaseSprite
-  id: MobHumanoidAnyMarking
-
-- type: humanoidBaseSprite
-  id: MobHumanoidMarkingMatchSkin
-  markingsMatchSkin: true
-
-- type: humanoidBaseSprite
   id: MobTajaranHead
   baseSprite:
     sprite: _EE/Mobs/Species/Tajaran/parts.rsi

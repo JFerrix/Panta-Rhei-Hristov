@@ -39,9 +39,7 @@
     - id: FoodMeatHuman
       amount: 5
   - type: TemperatureProtection # fur is a good insulator, actually
-    coefficient: 0.1
   - type: Flammable
-    fireStackIncreaseMultiplier: 1.35 # until you light it up, cuz it's oily too
   - type: NightVision
     color: "#808080"
     activateSound: null
@@ -84,7 +82,6 @@
     - CanPilot
     - FootstepSound
     - DoorBumpOpener
-    - FelinidEmotes
   - type: FootPrints
   - type: Temperature
     coldDamageThreshold: 248.15 # -25 degrees centigrade, like 12 degrees below normal
