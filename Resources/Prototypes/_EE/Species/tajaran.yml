@@ -7,6 +7,11 @@
   markingLimits: MobTajaranMarkingLimits
   dollPrototype: MobTajaranDummy
   skinColoration: HumanToned
+  customName: true
+  sexes:
+  - Unsexed
+  - Male
+  - Female
 
 # The lack of a layer means that
 # this person cannot have round-start anything
@@ -18,6 +23,7 @@
   id: MobTajaranSprites
   sprites:
     Special: MobHumanoidAnyMarking
+    HeadTop: MobHumanoidAnyMarking
     Head: MobTajaranHead
     Hair: MobHumanoidAnyMarking
     FacialHair: MobHumanoidAnyMarking
@@ -26,7 +32,6 @@
     UndergarmentBottom: MobHumanoidAnyMarking
     Chest: MobTajaranTorso
     Eyes: MobTajaranEyes
-    HeadTop: MobHumanoidAnyMarking
     LArm: MobTajaranLArm
     RArm: MobTajaranRArm
     LHand: MobTajaranLHand
