@@ -22,7 +22,7 @@
     delay: 1
   - type: ItemToggleActiveSound
     activeSound:
-      path: /Audio/Effects/explosionQuickEarrape.ogg
+      path: /Audio/_Euphoria/Effects/explosionQuickEarrape.ogg
       params:
         volume: 0
         maxDistance: 3
