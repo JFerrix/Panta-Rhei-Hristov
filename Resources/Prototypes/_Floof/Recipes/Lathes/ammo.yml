@@ -6,8 +6,8 @@
     Steel: 800
 
 - type: latheRecipe
-  id: MagazinePistolCaselessRifleSubsonic
-  result: MagazinePistolCaselessRifleSubsonic
+  id: MagazinePistolCaselessRifle
+  result: MagazinePistolCaselessRifle
   materials:
     Steel: 500
 
