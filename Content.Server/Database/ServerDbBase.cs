@@ -8,8 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
+using Content.Shared._Common.Consent;
 using Content.Shared.Administration.Logs;
 using Content.Shared.Construction.Prototypes;
+using Content.Shared._Common.Consent;
 using Content.Shared.Database;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
@@ -24,13 +26,13 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using Content.Server._CD.Records; // CD - Character Records
 using Content.Shared._CD.Records; // CD - Character Records
+using Content.Shared._DV.Tips; // DV - Tips
 
 namespace Content.Server.Database
 {
     public abstract class ServerDbBase
     {
         private readonly ISawmill _opsLog;
-
         public event Action<DatabaseNotification>? OnNotificationReceived;
 
         /// <param name="opsLog">Sawmill to trace log database operations to.</param>
@@ -277,6 +279,7 @@ namespace Content.Server.Database
                 profile.CharacterName,
                 profile.FlavorText,
                 profile.Species,
+                profile.CustomSpecieName,
                 profile.Age,
                 sex,
                 gender,
@@ -315,6 +318,7 @@ namespace Content.Server.Database
             profile.CharacterName = humanoid.Name;
             profile.FlavorText = humanoid.FlavorText;
             profile.Species = humanoid.Species;
+            profile.CustomSpecieName = humanoid.Customspeciename;
             profile.Age = humanoid.Age;
             profile.Sex = humanoid.Sex.ToString();
             profile.Gender = humanoid.Gender.ToString();
@@ -1414,7 +1418,7 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                 ban.LastEditedAt,
                 ban.ExpirationTime,
                 ban.Hidden,
-                new [] { ban.RoleId.Replace(BanManager.JobPrefix, null) },
+                new [] { ban.RoleId.Replace(BanManager.PrefixJob, null).Replace(BanManager.PrefixAntag, null) },
                 MakePlayerRecord(unbanningAdmin),
                 ban.Unban?.UnbanTime);
         }
@@ -1714,7 +1718,7 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                     NormalizeDatabaseTime(firstBan.LastEditedAt),
                     NormalizeDatabaseTime(firstBan.ExpirationTime),
                     firstBan.Hidden,
-                    banGroup.Select(ban => ban.RoleId.Replace(BanManager.JobPrefix, null)).ToArray(),
+                    banGroup.Select(ban => ban.RoleId.Replace(BanManager.PrefixJob, null).Replace(BanManager.PrefixAntag, null)).ToArray(),
                     MakePlayerRecord(unbanningAdmin),
                     NormalizeDatabaseTime(firstBan.Unban?.UnbanTime)));
             }
@@ -1849,6 +1853,213 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
         }
 
         #endregion
+
+        #region DV - Seen Tips
+
+        public async Task<HashSet<string>> GetSeenTips(Guid player, CancellationToken cancel = default)
+        {
+            await using var db = await GetDb(cancel);
+
+            var seenTips = await db.DbContext.DVSeenTips
+                .Where(s => s.PlayerUserId == player)
+                .Select(s => s.TipProtoId)
+                .ToListAsync(cancel);
+
+            return seenTips.ToHashSet();
+        }
+
+        public async Task<bool> HasSeenTip(Guid player, ProtoId<TipPrototype> tip)
+        {
+            await using var db = await GetDb();
+
+            return await db.DbContext.DVSeenTips
+                .Where(s => s.PlayerUserId == player)
+                .Where(s => s.TipProtoId == tip.Id)
+                .AnyAsync();
+        }
+
+        public async Task<bool> MarkTipSeen(Guid player, ProtoId<TipPrototype> tip)
+        {
+            await using var db = await GetDb();
+
+            var exists = await db.DbContext.DVSeenTips
+                .Where(s => s.PlayerUserId == player)
+                .Where(s => s.TipProtoId == tip.Id)
+                .AnyAsync();
+
+            if (exists)
+                return false;
+
+            var seenTip = new DVModel.SeenTip
+            {
+                PlayerUserId = player,
+                TipProtoId = tip.Id,
+                DismissedAt = DateTime.UtcNow
+            };
+
+            db.DbContext.DVSeenTips.Add(seenTip);
+            await db.DbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> ResetSeenTip(Guid player, ProtoId<TipPrototype> tip)
+        {
+            await using var db = await GetDb();
+
+            var entry = await db.DbContext.DVSeenTips
+                .Where(s => s.PlayerUserId == player)
+                .Where(s => s.TipProtoId == tip.Id)
+                .SingleOrDefaultAsync();
+
+            if (entry == null)
+                return false;
+
+            db.DbContext.DVSeenTips.Remove(entry);
+            await db.DbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<int> ResetAllSeenTips(Guid player)
+        {
+            await using var db = await GetDb();
+
+            return await db.DbContext.DVSeenTips
+                .Where(s => s.PlayerUserId == player)
+                .ExecuteDeleteAsync();
+        }
+
+        #endregion
+
+        #region Consent Settings
+
+        private static async Task DeletePlayerConsentSettings(ServerDbContext db, NetUserId userId)
+        {
+            var consentSettings = await db.ConsentSettings
+                .Where(c => c.UserId == userId.UserId)
+                .SingleOrDefaultAsync();
+
+            if (consentSettings is null)
+            {
+                return;
+            }
+
+            db.ConsentSettings.Remove(consentSettings);
+        }
+
+        public async Task SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings? consentSettings)
+        {
+            await using var db = await GetDb();
+
+            if (consentSettings is null)
+            {
+                await DeletePlayerConsentSettings(db.DbContext, userId);
+                await db.DbContext.SaveChangesAsync();
+                return;
+            }
+
+            // Get current consent settings so we know if freetext needs updating and which toggles to add or remove
+            var currentConsentSettings = await db.DbContext.ConsentSettings
+                .Include(c => c.ConsentToggles)
+                .AsSplitQuery()
+                .SingleOrDefaultAsync(c => c.UserId == userId);
+
+            if (currentConsentSettings is null)
+            {
+                currentConsentSettings = new ConsentSettings() {
+                    UserId = userId,
+                    ConsentToggles = new(),
+                    ConsentFreetext = consentSettings.Freetext,
+                    ConsentFreetextUpdatedAt = DateTime.Now,
+                };
+
+                db.DbContext.ConsentSettings.Add(currentConsentSettings);
+            }
+            else if (currentConsentSettings.ConsentFreetext != consentSettings.Freetext)
+            {
+                currentConsentSettings.ConsentFreetext = consentSettings.Freetext;
+                currentConsentSettings.ConsentFreetextUpdatedAt = DateTime.Now;
+            }
+
+            Dictionary<ProtoId<ConsentTogglePrototype>, string> currentConsentToggles = currentConsentSettings.ConsentToggles.ToDictionary(
+                keySelector: t => new ProtoId<ConsentTogglePrototype>(t.ToggleProtoId),
+                elementSelector: t => t.ToggleProtoState
+            );
+
+            // Remove and update toggles
+            foreach (var toggle in currentConsentToggles)
+            {
+                if (consentSettings.Toggles.TryGetValue(toggle.Key, out var toggleState))
+                {
+                    currentConsentSettings.ConsentToggles.Where(t => t.ToggleProtoId == toggle.Key).First().ToggleProtoState = toggleState;
+                }
+                else
+                {
+                    currentConsentSettings.ConsentToggles.RemoveAll(t => t.ToggleProtoId == toggle.Key);
+                }
+            }
+            // Add new toggles
+            foreach (var toggle in consentSettings.Toggles)
+            {
+                if (currentConsentToggles.ContainsKey(toggle.Key))
+                    continue;
+
+                currentConsentSettings.ConsentToggles.Add(new ()
+                {
+                    ToggleProtoId = toggle.Key,
+                    ToggleProtoState = toggle.Value,
+                });
+            }
+
+            await db.DbContext.SaveChangesAsync();
+        }
+
+        public async Task<ConsentSettings> GetPlayerConsentSettingsAsync(NetUserId userId)
+        {
+            await using var db = await GetDb();
+
+            var consentSettings = await db.DbContext.ConsentSettings
+                .Include(c => c.ConsentToggles)
+                .Include(c => c.ReadReceipts)
+                .SingleOrDefaultAsync(c => c.UserId == userId);
+
+            if (consentSettings is null)
+                return new();
+
+            return consentSettings;
+        }
+
+        public async Task<ConsentFreetextReadReceipt?> GetPlayerConsentReadReceipt(NetUserId readerUserId, int consentSettingsId)
+        {
+            await using var db = await GetDb();
+
+            return await db.DbContext.ConsentFreetextReadReceipt
+                .SingleOrDefaultAsync(c => c.ReaderUserId == readerUserId && c.ReadConsentSettingsId == consentSettingsId);
+        }
+
+        public async Task<ConsentFreetextReadReceipt> UpdatePlayerConsentReadReceipt(NetUserId readerUserId, int readConsentSettingsId)
+        {
+            await using var db = await GetDb();
+
+            var readRecipe = await db.DbContext.ConsentFreetextReadReceipt
+                .SingleOrDefaultAsync(c => c.ReaderUserId == readerUserId && c.ReadConsentSettingsId == readConsentSettingsId);
+
+            if (readRecipe is null)
+            {
+                readRecipe = new ConsentFreetextReadReceipt
+                {
+                    ReaderUserId = readerUserId,
+                    ReadConsentSettingsId = readConsentSettingsId,
+                    ReadAt = DateTime.Now,
+                };
+            }
+            else {
+                readRecipe.ReadAt = DateTime.Now;
+            }
+
+            return readRecipe;
+        }
+        #endregion
+
 
         public abstract Task SendNotification(DatabaseNotification notification);
 

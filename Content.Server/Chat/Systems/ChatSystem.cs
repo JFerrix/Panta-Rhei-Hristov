@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using Content.Server._RMC14.Emote; //RMC emote system
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server.Chat.Managers;
@@ -9,8 +8,6 @@ using Content.Server.GameTicking;
 using Content.Server.Speech.EntitySystems;
 using Content.Shared.Speech.Hushing; // DeltaV
 using Content.Server.Nyanotrasen.Chat;
-using Content.Server.Speech.Components;
-using Content.Server.Speech.EntitySystems;
 using Content.Server.Speech.Prototypes;
 using Content.Server.Station.Systems;
 using Content.Shared.ActionBlocker;
@@ -41,6 +38,10 @@ using Robust.Shared.Utility;
 
 namespace Content.Server.Chat.Systems;
 
+// Dear contributor. When I was introducing changes to this system only god and I knew what I was doing.
+// Now only god knows. Please don't touch this code ever again. If you do have to, increment this counter as a warning for others:
+// TOTAL_HOURS_WASTED_HERE_EE = 23
+
 // TODO refactor whatever active warzone this class and chatmanager have become
 /// <summary>
 ///     ChatSystem is responsible for in-simulation chat handling, such as whispering, speaking, emoting, etc.
@@ -62,9 +63,7 @@ public sealed partial class ChatSystem : SharedChatSystem
     [Dependency] private readonly MobStateSystem _mobStateSystem = default!;
     [Dependency] private readonly SharedAudioSystem _audio = default!;
     [Dependency] private readonly ReplacementAccentSystem _wordreplacement = default!;
-    [Dependency] private readonly EntityWhitelistSystem _whitelistSystem = default!;
     [Dependency] private readonly ExamineSystemShared _examineSystem = default!;
-    [Dependency] private readonly RMCEmoteSystem _rmcEmote = default!; //RMC emote system
 
     //Nyano - Summary: pulls in the nyano chat system for psionics.
     [Dependency] private readonly NyanoChatSystem _nyanoChatSystem = default!;
@@ -77,7 +76,7 @@ public sealed partial class ChatSystem : SharedChatSystem
     public override void Initialize()
     {
         base.Initialize();
-        CacheEmotes();
+
         Subs.CVar(_configurationManager, CCVars.LoocEnabled, OnLoocEnabledChanged, true);
         Subs.CVar(_configurationManager, CCVars.DeadLoocEnabled, OnDeadLoocEnabledChanged, true);
         Subs.CVar(_configurationManager, CCVars.CritLoocEnabled, OnCritLoocEnabledChanged, true);
@@ -129,42 +128,24 @@ public sealed partial class ChatSystem : SharedChatSystem
         }
     }
 
-    /// <summary>
-    ///     Sends an in-character chat message to relevant clients.
-    /// </summary>
-    /// <param name="source">The entity that is speaking</param>
-    /// <param name="message">The message being spoken or emoted</param>
-    /// <param name="desiredType">The chat type</param>
-    /// <param name="hideChat">Whether or not this message should appear in the chat window</param>
-    /// <param name="hideLog">Whether or not this message should appear in the adminlog window</param>
-    /// <param name="shell"></param>
-    /// <param name="player">The player doing the speaking</param>
-    /// <param name="nameOverride">The name to use for the speaking entity. Usually this should just be modified via <see cref="TransformSpeakerNameEvent"/>. If this is set, the event will not get raised.</param>
-    public void TrySendInGameICMessage(
+    /// <inheritdoc />
+    public override void TrySendInGameICMessage(
         EntityUid source,
         string message,
         InGameICChatType desiredType,
-        bool hideChat, bool hideLog = false,
+        bool hideChat,
+        bool hideLog = false,
         IConsoleShell? shell = null,
-        ICommonSession? player = null, string? nameOverride = null,
+        ICommonSession? player = null,
+        string? nameOverride = null,
         bool checkRadioPrefix = true,
         bool ignoreActionBlocker = false)
     {
         TrySendInGameICMessage(source, message, desiredType, hideChat ? ChatTransmitRange.HideChat : ChatTransmitRange.Normal, hideLog, shell, player, nameOverride, checkRadioPrefix, ignoreActionBlocker);
     }
 
-    /// <summary>
-    ///     Sends an in-character chat message to relevant clients.
-    /// </summary>
-    /// <param name="source">The entity that is speaking</param>
-    /// <param name="message">The message being spoken or emoted</param>
-    /// <param name="desiredType">The chat type</param>
-    /// <param name="range">Conceptual range of transmission, if it shows in the chat window, if it shows to far-away ghosts or ghosts at all...</param>
-    /// <param name="shell"></param>
-    /// <param name="player">The player doing the speaking</param>
-    /// <param name="nameOverride">The name to use for the speaking entity. Usually this should just be modified via <see cref="TransformSpeakerNameEvent"/>. If this is set, the event will not get raised.</param>
-    /// <param name="ignoreActionBlocker">If set to true, action blocker will not be considered for whether an entity can send this message.</param>
-    public void TrySendInGameICMessage(
+    /// <inheritdoc />
+    public override void TrySendInGameICMessage(
         EntityUid source,
         string message,
         InGameICChatType desiredType,
@@ -227,7 +208,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         }
         // DeltaV - End hushed trait logic
 
-        bool shouldCapitalize = (desiredType != InGameICChatType.Emote);
+        bool shouldCapitalize = (desiredType is not (InGameICChatType.Emote or InGameICChatType.Subtle)); // Floofstation edit
         bool shouldPunctuate = _configurationManager.GetCVar(CCVars.ChatPunctuation);
         // Capitalizing the word I only happens in English, so we check language here
         bool shouldCapitalizeTheWordI = (!CultureInfo.CurrentCulture.IsNeutralCulture && CultureInfo.CurrentCulture.Parent.Name == "en")
@@ -259,7 +240,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         // This message may have a radio prefix, and should then be whispered to the resolved radio channel
         if (checkRadioPrefix)
         {
-            if (TryProccessRadioMessage(source, message, out var modMessage, out var channel))
+            if (TryProcessRadioMessage(source, message, out var modMessage, out var channel))
             {
                 SendEntityWhisper(source, modMessage, range, channel, nameOverride, hideLog, ignoreActionBlocker);
                 return;
@@ -278,6 +259,11 @@ public sealed partial class ChatSystem : SharedChatSystem
             case InGameICChatType.Emote:
                 SendEntityEmote(source, message, range, nameOverride, hideLog: hideLog, ignoreActionBlocker: ignoreActionBlocker);
                 break;
+            // Floofstation section
+            case InGameICChatType.Subtle:
+                SendEntitySubtle(source, message, range, nameOverride, hideLog: hideLog, ignoreActionBlocker: ignoreActionBlocker);
+                break;
+            // Floofstation section end
             //Nyano - Summary: case adds the telepathic chat sending ability.
             case InGameICChatType.Telepathic:
                 _nyanoChatSystem.SendTelepathicChat(source, message, range == ChatTransmitRange.HideChat);
@@ -285,7 +271,8 @@ public sealed partial class ChatSystem : SharedChatSystem
         }
     }
 
-    public void TrySendInGameOOCMessage(
+    /// <inheritdoc />
+    public override void TrySendInGameOOCMessage(
         EntityUid source,
         string message,
         InGameOOCChatType type,
@@ -329,19 +316,18 @@ public sealed partial class ChatSystem : SharedChatSystem
             case InGameOOCChatType.Looc:
                 SendLOOC(source, player, message, hideChat);
                 break;
+            // Floofstation section
+            case InGameOOCChatType.SubtleLOOC:
+                SendSubtleLooc(source, player, message, hideChat);
+                break;
+            // Floofstation section end
         }
     }
 
     #region Announcements
 
-    /// <summary>
-    /// Dispatches an announcement to all.
-    /// </summary>
-    /// <param name="message">The contents of the message</param>
-    /// <param name="sender">The sender (Communications Console in Communications Console Announcement)</param>
-    /// <param name="playSound">Play the announcement sound</param>
-    /// <param name="colorOverride">Optional color for the announcement message</param>
-    public void DispatchGlobalAnnouncement(
+    /// <inheritdoc />
+    public override void DispatchGlobalAnnouncement(
         string message,
         string? sender = null,
         bool playSound = true,
@@ -360,17 +346,8 @@ public sealed partial class ChatSystem : SharedChatSystem
         _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Global station announcement from {sender}: {message}");
     }
 
-    /// <summary>
-    /// Dispatches an announcement to players selected by filter.
-    /// </summary>
-    /// <param name="filter">Filter to select players who will recieve the announcement</param>
-    /// <param name="message">The contents of the message</param>
-    /// <param name="source">The entity making the announcement (used to determine the station)</param>
-    /// <param name="sender">The sender (Communications Console in Communications Console Announcement)</param>
-    /// <param name="playDefaultSound">Play the announcement sound</param>
-    /// <param name="announcementSound">Sound to play</param>
-    /// <param name="colorOverride">Optional color for the announcement message</param>
-    public void DispatchFilteredAnnouncement(
+    /// <inheritdoc />
+    public override void DispatchFilteredAnnouncement(
         Filter filter,
         string message,
         EntityUid? source = null,
@@ -390,15 +367,8 @@ public sealed partial class ChatSystem : SharedChatSystem
         _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Station Announcement from {sender}: {message}");
     }
 
-    /// <summary>
-    /// Dispatches an announcement on a specific station
-    /// </summary>
-    /// <param name="source">The entity making the announcement (used to determine the station)</param>
-    /// <param name="message">The contents of the message</param>
-    /// <param name="sender">The sender (Communications Console in Communications Console Announcement)</param>
-    /// <param name="playDefaultSound">Play the announcement sound</param>
-    /// <param name="colorOverride">Optional color for the announcement message</param>
-    public void DispatchStationAnnouncement(
+    /// <inheritdoc />
+    public override void DispatchStationAnnouncement(
         EntityUid source,
         string message,
         string? sender = null,
@@ -466,7 +436,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             RaiseLocalEvent(source, nameEv);
             name = nameEv.VoiceName;
             // Check for a speech verb override
-            if (nameEv.SpeechVerb != null && _prototypeManager.TryIndex(nameEv.SpeechVerb, out var proto))
+            if (nameEv.SpeechVerb != null && _prototypeManager.Resolve(nameEv.SpeechVerb, out var proto))
                 speech = proto;
         }
 
@@ -662,7 +632,7 @@ public sealed partial class ChatSystem : SharedChatSystem
     }
     // End Mono Changes
 
-    private void SendEntityEmote(
+    protected override void SendEntityEmote(
         EntityUid source,
         string action,
         ChatTransmitRange range,
@@ -670,7 +640,8 @@ public sealed partial class ChatSystem : SharedChatSystem
         bool hideLog = false,
         bool checkEmote = true,
         bool ignoreActionBlocker = false,
-        NetUserId? author = null
+        NetUserId? author = null,
+        bool checkLOS = true // Floofstation - emotes respect LOS by default
         )
     {
         if (!_actionBlocker.CanEmote(source) && !ignoreActionBlocker)
@@ -690,7 +661,8 @@ public sealed partial class ChatSystem : SharedChatSystem
             !TryEmoteChatInput(source, action))
             return;
 
-        SendInVoiceRange(ChatChannel.Emotes, action, wrappedMessage, source, range, author);
+        // Floofstation - check LOS
+        SendInVoiceRange(ChatChannel.Emotes, action, wrappedMessage, source, range, author, checkLOS: checkLOS);
         if (!hideLog)
             if (name != Name(source))
                 _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Emote from {ToPrettyString(source):user} as {name}: {action}");
@@ -798,13 +770,18 @@ public sealed partial class ChatSystem : SharedChatSystem
     /// <summary>
     ///     Sends a chat message to the given players in range of the source entity.
     /// </summary>
-    private void SendInVoiceRange(ChatChannel channel, string message, string wrappedMessage, EntityUid source, ChatTransmitRange range, NetUserId? author = null)
+    // Floofstation - add checkLOS
+    private void SendInVoiceRange(ChatChannel channel, string message, string wrappedMessage, EntityUid source, ChatTransmitRange range, NetUserId? author = null, bool checkLOS = false)
     {
         foreach (var (session, data) in GetRecipients(source, VoiceRange))
         {
             var entRange = MessageRangeCheck(session, data, range);
             if (entRange == MessageRangeCheckResult.Disallowed)
                 continue;
+
+            if (checkLOS && !data.Observer && !data.InLOS)
+                continue; // Floofstation: some things dont go through walls (but they go through windows!)
+
             var entHideChat = entRange == MessageRangeCheckResult.HideChat;
             _chatManager.ChatMessageToOne(channel, message, wrappedMessage, source, entHideChat, session.Channel, author: author);
         }
@@ -944,22 +921,29 @@ public sealed partial class ChatSystem : SharedChatSystem
 
             var observer = ghostHearing.HasComponent(playerEntity);
 
+            // Floofstation edit - check LOS
+            sourceCoords.TryDistance(EntityManager, transformEntity.Coordinates, out var distance);
+            var inRange = distance <= voiceGetRange;
+            var isVisible = observer || (inRange && _examineSystem.InRangeUnOccluded(source, playerEntity, voiceGetRange));
+            // Floofstation edit end
+
             // even if they are a ghost hearer, in some situations we still need the range
-            if (sourceCoords.TryDistance(EntityManager, transformEntity.Coordinates, out var distance) && distance < voiceGetRange)
+            if (distance < voiceGetRange)
             {
-                recipients.Add(player, new ICChatRecipientData(distance, observer));
+                recipients.Add(player, new ICChatRecipientData(distance, observer, InLOS: isVisible));
                 continue;
             }
 
             if (observer)
-                recipients.Add(player, new ICChatRecipientData(-1, true));
+                recipients.Add(player, new ICChatRecipientData(-1, true, InLOS: isVisible));
         }
 
         RaiseLocalEvent(new ExpandICChatRecipientsEvent(source, voiceGetRange, recipients));
         return recipients;
     }
 
-    public readonly record struct ICChatRecipientData(float Range, bool Observer, bool? HideChatOverride = null)
+    // Floofstation: add inLOS
+    public readonly record struct ICChatRecipientData(float Range, bool Observer, bool? HideChatOverride = null, bool InLOS = true)
     {
     }
 
@@ -1004,96 +988,9 @@ public record ExpandICChatRecipientsEvent(EntityUid Source, float VoiceRange, Di
 {
 }
 
-/// <summary>
-///     Raised broadcast in order to transform speech.transmit
-/// </summary>
-public sealed class TransformSpeechEvent : EntityEventArgs
-{
-    public EntityUid Sender;
-    public string Message;
-
-    public TransformSpeechEvent(EntityUid sender, string message)
-    {
-        Sender = sender;
-        Message = message;
-    }
-}
-
-public sealed class CheckIgnoreSpeechBlockerEvent : EntityEventArgs
-{
-    public EntityUid Sender;
-    public bool IgnoreBlocker;
-
-    public CheckIgnoreSpeechBlockerEvent(EntityUid sender, bool ignoreBlocker)
-    {
-        Sender = sender;
-        IgnoreBlocker = ignoreBlocker;
-    }
-}
-
-// Begin Mono Changes
+// Begin Mono - Cortical Borers
 public sealed class CheckTargetedSpeechEvent : EntityEventArgs
 {
     public List<EntityUid> Targets = new List<EntityUid>();
 }
-// End Mono Changes
-
-/// <summary>
-///     Raised on an entity when it speaks, either through 'say' or 'whisper'.
-/// </summary>
-public sealed class EntitySpokeEvent : EntityEventArgs
-{
-    public readonly EntityUid Source;
-    public readonly string Message;
-    public readonly string? ObfuscatedMessage; // not null if this was a whisper
-
-    /// <summary>
-    ///     If the entity was trying to speak into a radio, this was the channel they were trying to access. If a radio
-    ///     message gets sent on this channel, this should be set to null to prevent duplicate messages.
-    /// </summary>
-    public RadioChannelPrototype? Channel;
-
-    public EntitySpokeEvent(EntityUid source, string message, RadioChannelPrototype? channel, string? obfuscatedMessage)
-    {
-        Source = source;
-        Message = message;
-        Channel = channel;
-        ObfuscatedMessage = obfuscatedMessage;
-    }
-}
-
-/// <summary>
-///     InGame IC chat is for chat that is specifically ingame (not lobby) but is also in character, i.e. speaking.
-/// </summary>
-// ReSharper disable once InconsistentNaming
-public enum InGameICChatType : byte
-{
-    Speak,
-    Emote,
-    Whisper,
-    Telepathic //Nyano - Summary: adds telepathic as a type of message users can receive.
-}
-
-/// <summary>
-///     InGame OOC chat is for chat that is specifically ingame (not lobby) but is OOC, like deadchat or LOOC.
-/// </summary>
-public enum InGameOOCChatType : byte
-{
-    Looc,
-    Dead
-}
-
-/// <summary>
-///     Controls transmission of chat.
-/// </summary>
-public enum ChatTransmitRange : byte
-{
-    /// Acts normal, ghosts can hear across the map, etc.
-    Normal,
-    /// Normal but ghosts are still range-limited.
-    GhostRangeLimit,
-    /// Hidden from the chat window.
-    HideChat,
-    /// Ghosts can't hear or see it at all. Regular players can if in-range.
-    NoGhosts
-}
+// END Mono

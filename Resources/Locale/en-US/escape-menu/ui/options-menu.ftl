@@ -140,6 +140,8 @@ ui-options-function-move-down = Move Down
 ui-options-function-move-right = Move Right
 ui-options-function-walk = Walk
 ui-options-function-toggle-knockdown = Toggle Crawling
+# Floofstation
+ui-options-function-toggle-crawling-under = Toggle crawling under furniture
 
 ui-options-function-camera-rotate-left = Rotate left
 ui-options-function-camera-rotate-right = Rotate right
@@ -167,6 +169,9 @@ ui-options-static-storage-ui = Lock storage window to hotbar
 
 ui-options-function-smart-equip-backpack = Smart-equip to backpack
 ui-options-function-smart-equip-belt = Smart-equip to belt
+ui-options-function-smart-equip-suit-storage = Smart-equip to suit storage
+ui-options-function-smart-equip-pocket1 = Smart-equip to pocket 1
+ui-options-function-smart-equip-pocket2 = Smart-equip to pocket 2
 ui-options-function-open-backpack = Open backpack
 ui-options-function-open-belt = Open belt
 ui-options-function-throw-item-in-hand = Throw item

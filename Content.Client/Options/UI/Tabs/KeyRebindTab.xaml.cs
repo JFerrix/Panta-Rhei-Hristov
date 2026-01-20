@@ -131,8 +131,7 @@ namespace Content.Client.Options.UI.Tabs
                 KeybindsContainer.AddChild(new Label
                 {
                     Text = Loc.GetString(headerContents),
-                    FontColorOverride = StyleNano.NanoGold,
-                    StyleClasses = { StyleNano.StyleClassLabelKeyText }
+                    StyleClasses = { StyleClass.LabelKeyText }
                 });
             }
 
@@ -164,6 +163,7 @@ namespace Content.Client.Options.UI.Tabs
             AddCheckBox("ui-options-hotkey-toggle-walk", _cfg.GetCVar(CCVars.ToggleWalk), HandleToggleWalk);
             InitToggleWalk();
             AddButton(ContentKeyFunctions.ToggleKnockdown);
+            AddButton(ContentKeyFunctions.ToggleCrawlingUnder); // Floofstation - under-table crawling
 
             AddHeader("ui-options-header-camera");
             AddButton(EngineKeyFunctions.CameraRotateLeft);
@@ -191,6 +191,9 @@ namespace Content.Client.Options.UI.Tabs
             AddHeader("ui-options-header-interaction-adv");
             AddButton(ContentKeyFunctions.SmartEquipBackpack);
             AddButton(ContentKeyFunctions.SmartEquipBelt);
+            AddButton(ContentKeyFunctions.SmartEquipPocket1);
+            AddButton(ContentKeyFunctions.SmartEquipPocket2);
+            AddButton(ContentKeyFunctions.SmartEquipSuitStorage);
             AddButton(ContentKeyFunctions.OpenBackpack);
             AddButton(ContentKeyFunctions.OpenBelt);
             AddButton(ContentKeyFunctions.ThrowItemInHand);
@@ -206,6 +209,10 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.FocusChat);
             AddButton(ContentKeyFunctions.FocusLocalChat);
             AddButton(ContentKeyFunctions.FocusEmote);
+            // Floofstation section
+            AddButton(ContentKeyFunctions.FocusSubtle);
+            AddButton(ContentKeyFunctions.FocusSubtleOOC);
+            // Floofstation section end
             AddButton(ContentKeyFunctions.FocusWhisperChat);
             AddButton(ContentKeyFunctions.FocusRadio);
             AddButton(ContentKeyFunctions.FocusLOOC);
@@ -226,6 +233,7 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.ToggleRoundEndSummaryWindow);
             AddButton(ContentKeyFunctions.OpenEntitySpawnWindow);
             AddButton(ContentKeyFunctions.OpenSandboxWindow);
+            AddButton(ContentKeyFunctions.OpenConsentWindow);
             AddButton(ContentKeyFunctions.OpenTileSpawnWindow);
             AddButton(ContentKeyFunctions.OpenDecalSpawnWindow);
             AddButton(ContentKeyFunctions.OpenAdminMenu);
@@ -549,9 +557,9 @@ namespace Content.Client.Options.UI.Tabs
                     HorizontalAlignment = HAlignment.Left
                 };
 
-                BindButton1 = new BindButton(parent, this, StyleBase.ButtonOpenRight);
-                BindButton2 = new BindButton(parent, this, StyleBase.ButtonOpenLeft);
-                ResetButton = new Button { Text = Loc.GetString("ui-options-bind-reset"), StyleClasses = { StyleBase.ButtonCaution } };
+                BindButton1 = new BindButton(parent, this, StyleClass.ButtonOpenRight);
+                BindButton2 = new BindButton(parent, this, StyleClass.ButtonOpenLeft);
+                ResetButton = new Button { Text = Loc.GetString("ui-options-bind-reset"), StyleClasses = { StyleClass.Negative } };
 
                 var hBox = new BoxContainer
                 {
