@@ -2,14 +2,12 @@
 - type: latheRecipe
   id: MagazineBoxCaselessRifleSubsonic
   result: MagazineBoxCaselessRifleSubsonic
-  category: Ammo
   materials:
     Steel: 800
 
 - type: latheRecipe
   id: MagazinePistolCaselessRifleSubsonic
   result: MagazinePistolCaselessRifleSubsonic
-  category: Ammo
   materials:
     Steel: 500
 
@@ -17,7 +15,6 @@
 - type: latheRecipe
   id: MagazineBoxAntiMateriel
   result: MagazineBoxAntiMateriel
-  category: Ammo
   completetime: 5
   materials:
     Steel: 2000

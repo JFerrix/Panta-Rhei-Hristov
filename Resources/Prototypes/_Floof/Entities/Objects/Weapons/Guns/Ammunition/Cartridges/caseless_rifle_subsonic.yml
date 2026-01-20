@@ -5,5 +5,5 @@
   description: A small caliber utilizing caseless technology, omitting conventional brass casing in favor of hardened propellant. Specifically built for stealth purposes
   components:
   - type: CartridgeAmmo
-    MuzzleFlash: MuzzleFlashEffectSuppressed
+    muzzleFlash: MuzzleFlashEffectSuppressed
     proto: BulletCaselessRifleSubsonic

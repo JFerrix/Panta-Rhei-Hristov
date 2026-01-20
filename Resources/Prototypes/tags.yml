@@ -253,6 +253,9 @@
   id: CartridgeCaselessRifle
 
 - type: Tag
+  id: CartridgeCaselessRifleSubsonic
+
+- type: Tag
   id: CartridgeCHIMP
 
 - type: Tag
