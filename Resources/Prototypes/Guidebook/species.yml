@@ -77,4 +77,4 @@
 - type: guideEntry # Floof - Tajaran Update b7660b9
   id: Tajaran
   name: species-name-tajaran
-  text: "/ServerInfo/Guidebook/Mobs/Tajaran.xml"
+  text: "/ServerInfo/_Floof/Guidebook/Mobs/Tajaran.xml"
