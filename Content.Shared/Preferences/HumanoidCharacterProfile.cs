@@ -91,6 +91,9 @@ namespace Content.Shared.Preferences
         public Sex Sex { get; private set; } = Sex.Male;
 
         [DataField]
+        public string Customspeciename { get; private set; } = "";
+
+        [DataField]
         public Gender Gender { get; private set; } = Gender.Male;
 
         /// <summary>
@@ -144,6 +147,7 @@ namespace Content.Shared.Preferences
             string name,
             string flavortext,
             string species,
+            string customspeciename,
             int age,
             Sex sex,
             Gender gender,
@@ -163,6 +167,7 @@ namespace Content.Shared.Preferences
             Name = name;
             FlavorText = flavortext;
             Species = species;
+            Customspeciename = customspeciename;
             Age = age;
             Sex = sex;
             Gender = gender;
@@ -198,6 +203,7 @@ namespace Content.Shared.Preferences
             : this(other.Name,
                 other.FlavorText,
                 other.Species,
+                other.Customspeciename,
                 other.Age,
                 other.Sex,
                 other.Gender,
@@ -234,6 +240,7 @@ namespace Content.Shared.Preferences
             return new()
             {
                 Species = species,
+                Appearance = HumanoidCharacterAppearance.DefaultWithSpecies(species),
             };
         }
 
@@ -290,6 +297,7 @@ namespace Content.Shared.Preferences
                 Age = age,
                 Gender = gender,
                 Species = species,
+                Customspeciename = species,
                 Appearance = HumanoidCharacterAppearance.Random(species, sex),
                 Height = height,
             };
@@ -334,6 +342,11 @@ namespace Content.Shared.Preferences
         public HumanoidCharacterProfile WithSpawnPriorityPreference(SpawnPriorityPreference spawnPriority)
         {
             return new(this) { SpawnPriority = spawnPriority };
+        }
+
+        public HumanoidCharacterProfile WithCustomSpeciesName(string customspeciename)
+        {
+            return new(this) { Customspeciename = customspeciename };
         }
 
         // Begin CD - Character Records
@@ -443,7 +456,7 @@ namespace Content.Shared.Preferences
             // Category not found so dump it.
             TraitCategoryPrototype? traitCategory = null;
 
-            if (category != null && !protoManager.TryIndex(category, out traitCategory))
+            if (category != null && !protoManager.Resolve(category, out traitCategory))
                 return new(this);
 
             var list = new HashSet<ProtoId<TraitPrototype>>(_traitPreferences) { traitId };
@@ -587,6 +600,15 @@ namespace Content.Shared.Preferences
                 name = GetName(Species, gender);
             }
 
+            var customspeciename =
+                !speciesPrototype.CustomName
+                || string.IsNullOrEmpty(Customspeciename)
+                    ? ""
+                    : Customspeciename.Length > maxNameLength
+                        ? FormattedMessage.RemoveMarkup(Customspeciename)[..maxNameLength]
+                        : FormattedMessage.RemoveMarkup(Customspeciename);
+
+
             string flavortext;
             var maxFlavorTextLength = configManager.GetCVar(CCVars.MaxFlavorTextLength);
             if (FlavorText.Length > maxFlavorTextLength)
@@ -651,6 +673,7 @@ namespace Content.Shared.Preferences
                          .ToList();
 
             Name = name;
+            Customspeciename = customspeciename;
             FlavorText = flavortext;
             Age = age;
             Sex = sex;
@@ -696,6 +719,9 @@ namespace Content.Shared.Preferences
                     continue;
                 }
 
+                // This happens after we verify the prototype exists
+                // These values are set equal in the database and we need to make sure they're equal here too!
+                loadouts.Role = roleName;
                 loadouts.EnsureValid(this, session, collection);
             }
 
@@ -727,7 +753,7 @@ namespace Content.Shared.Preferences
                 }
 
                 // No category so dump it.
-                if (!protoManager.TryIndex(traitProto.Category, out var category))
+                if (!protoManager.Resolve(traitProto.Category, out var category))
                     continue;
 
                 var existing = groups.GetOrNew(category.ID);
@@ -781,6 +807,7 @@ namespace Content.Shared.Preferences
             hashCode.Add(Name);
             hashCode.Add(FlavorText);
             hashCode.Add(Species);
+            hashCode.Add(Customspeciename);
             hashCode.Add(Age);
             hashCode.Add((int)Sex);
             hashCode.Add((int)Gender);

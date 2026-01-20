@@ -61,6 +61,9 @@
           node: start
         - !type:DoActsBehavior
           acts: ["Destruction"]
+    - type: InteractionVerbs
+      allowedVerbs:
+      - KnockOn
     - type: Sprite
       sprite: Structures/Machines/parts.rsi
       state: box_0
@@ -150,6 +153,7 @@
   placement:
     mode: SnapgridCenter
   components:
+    - type: InteractionOutline
     - type: Transform
       anchored: true
       noRot: true

@@ -5,9 +5,12 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Content.Server.Administration.Logs;
+using Content.Shared._Common.Consent;
+using Content.Shared._DV.Tips; // DeltaV - Tips
 using Content.Shared.Administration.Logs;
 using Content.Shared.CCVar;
 using Content.Shared.Construction.Prototypes;
+using Content.Shared._Common.Consent;
 using Content.Shared.Database;
 using Content.Shared.Preferences;
 using Content.Shared.Roles;
@@ -335,11 +338,31 @@ namespace Content.Server.Database
 
         #endregion
 
+        #region Consent Settings
+
+        Task SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings consentSettings);
+        Task<ConsentSettings> GetPlayerConsentSettingsAsync(NetUserId userId);
+        Task<ConsentFreetextReadReceipt?> GetPlayerConsentReadReceipt(NetUserId readerUserId, int consentSettingsId);
+        Task<ConsentFreetextReadReceipt> UpdatePlayerConsentReadReceipt(NetUserId readerUserId, int readConsentSettingsId);
+
+        #endregion
+
+
         #region IPintel
 
         Task<bool> UpsertIPIntelCache(DateTime time, IPAddress ip, float score);
         Task<IPIntelCache?> GetIPIntelCache(IPAddress ip);
         Task<bool> CleanIPIntelCache(TimeSpan range);
+
+        #endregion
+
+        #region DeltaV - Seen Tips
+
+        Task<HashSet<string>> GetSeenTips(Guid player, CancellationToken cancel = default);
+        Task<bool> HasSeenTip(Guid player, ProtoId<TipPrototype> tip);
+        Task<bool> MarkTipSeen(Guid player, ProtoId<TipPrototype> tip);
+        Task<bool> ResetSeenTip(Guid player, ProtoId<TipPrototype> tip);
+        Task<int> ResetAllSeenTips(Guid player);
 
         #endregion
 
@@ -1052,6 +1075,40 @@ namespace Content.Server.Database
             return RunDbCommand(() => _db.CleanIPIntelCache(range));
         }
 
+        #region DeltaV - Seen Tips
+
+        public Task<HashSet<string>> GetSeenTips(Guid player, CancellationToken cancel = default)
+        {
+            DbReadOpsMetric.Inc();
+            return RunDbCommand(() => _db.GetSeenTips(player, cancel));
+        }
+
+        public Task<bool> HasSeenTip(Guid player, ProtoId<TipPrototype> tip)
+        {
+            DbReadOpsMetric.Inc();
+            return RunDbCommand(() => _db.HasSeenTip(player, tip));
+        }
+
+        public Task<bool> MarkTipSeen(Guid player, ProtoId<TipPrototype> tip)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.MarkTipSeen(player, tip));
+        }
+
+        public Task<bool> ResetSeenTip(Guid player, ProtoId<TipPrototype> tip)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.ResetSeenTip(player, tip));
+        }
+
+        public Task<int> ResetAllSeenTips(Guid player)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.ResetAllSeenTips(player));
+        }
+
+        #endregion
+
         public void SubscribeToNotifications(Action<DatabaseNotification> handler)
         {
             lock (_notificationHandlers)
@@ -1080,6 +1137,30 @@ namespace Content.Server.Database
                     handler(notification);
                 }
             }
+        }
+
+        public Task SavePlayerConsentSettingsAsync(NetUserId userId, PlayerConsentSettings consentSettings)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.SavePlayerConsentSettingsAsync(userId, consentSettings));
+        }
+
+        public Task<ConsentSettings> GetPlayerConsentSettingsAsync(NetUserId userId)
+        {
+            DbReadOpsMetric.Inc();
+            return RunDbCommand(() => _db.GetPlayerConsentSettingsAsync(userId));
+        }
+
+        public Task<ConsentFreetextReadReceipt?> GetPlayerConsentReadReceipt(NetUserId readerUserId, int consentSettingsId)
+        {
+            DbReadOpsMetric.Inc();
+            return RunDbCommand(() => _db.GetPlayerConsentReadReceipt(readerUserId, consentSettingsId));
+        }
+
+        public Task<ConsentFreetextReadReceipt> UpdatePlayerConsentReadReceipt(NetUserId readerUserId, int readConsentSettingsId)
+        {
+            DbWriteOpsMetric.Inc();
+            return RunDbCommand(() => _db.UpdatePlayerConsentReadReceipt(readerUserId, readConsentSettingsId));
         }
 
         // Wrapper functions to run DB commands from the thread pool.

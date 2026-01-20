@@ -1,8 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
+using System.Timers;
 using Content.Shared.Alert;
 using Content.Shared.Buckle.Components;
 using Content.Shared.CCVar;
+using Content.Shared.Climbing.Components;
+using Content.Shared.Climbing.Systems;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Components;
+using Content.Shared.Damage.Systems;
 using Content.Shared.Database;
 using Content.Shared.DoAfter;
 using Content.Shared.Gravity;
@@ -37,6 +42,8 @@ public abstract partial class SharedStunSystem
     [Dependency] private readonly SharedPhysicsSystem _physics = default!;
     [Dependency] private readonly StandingStateSystem _standingState = default!;
     [Dependency] private readonly IConfigurationManager _cfgManager = default!;
+    // Floofstation
+    [Dependency] private readonly ClimbSystem _climb = default!;
 
     public static readonly ProtoId<AlertPrototype> KnockdownAlert = "Knockdown";
 
@@ -99,7 +106,7 @@ public abstract partial class SharedStunSystem
 
     private void OnRejuvenate(Entity<KnockedDownComponent> entity, ref RejuvenateEvent args)
     {
-        SetKnockdownTime(entity, GameTiming.CurTime);
+        SetKnockdownNextUpdate(entity, GameTiming.CurTime);
 
         if (entity.Comp.AutoStand)
             RemComp<KnockedDownComponent>(entity);
@@ -121,7 +128,7 @@ public abstract partial class SharedStunSystem
         entity.Comp.SpeedModifier = 1f;
 
         _standingState.Stand(entity);
-        Alerts.ClearAlert(entity, KnockdownAlert);
+        Alerts.ClearAlert(entity.Owner, KnockdownAlert);
     }
 
     #endregion
@@ -161,6 +168,19 @@ public abstract partial class SharedStunSystem
     }
 
     /// <summary>
+    /// Sets the time left of the knockdown timer to the inputted value.
+    /// </summary>
+    /// <param name="entity">Entity who's knockdown time we're updating.</param>
+    /// <param name="time">The time we're updating with.</param>
+    public void SetKnockdownTime(Entity<KnockedDownComponent?> entity, TimeSpan time)
+    {
+        if (!Resolve(entity, ref entity.Comp, false))
+            return;
+
+        SetKnockdownNextUpdate((entity, entity.Comp), GameTiming.CurTime + time);
+    }
+
+    /// <summary>
     /// Updates the knockdown timer of a knocked down entity with a given inputted time, then dirties the time.
     /// </summary>
     /// <param name="entity">Entity who's knockdown time we're updating.</param>
@@ -172,18 +192,6 @@ public abstract partial class SharedStunSystem
             RefreshKnockdownTime(entity, time);
         else
             AddKnockdownTime(entity, time);
-    }
-
-    /// <summary>
-    /// Sets the next update datafield of an entity's <see cref="KnockedDownComponent"/> to a specific time.
-    /// </summary>
-    /// <param name="entity">Entity whose timer we're updating</param>
-    /// <param name="time">The exact time we're setting the next update to.</param>
-    public void SetKnockdownTime(Entity<KnockedDownComponent> entity, TimeSpan time)
-    {
-        entity.Comp.NextUpdate = time;
-        DirtyField(entity, entity.Comp, nameof(KnockedDownComponent.NextUpdate));
-        Alerts.ShowAlert(entity, KnockdownAlert, null, (GameTiming.CurTime, entity.Comp.NextUpdate));
     }
 
     /// <summary>
@@ -199,7 +207,7 @@ public abstract partial class SharedStunSystem
 
         var knockedTime = GameTiming.CurTime + time;
         if (entity.Comp.NextUpdate < knockedTime)
-            SetKnockdownTime((entity, entity.Comp), knockedTime);
+            SetKnockdownNextUpdate((entity, entity.Comp), knockedTime);
     }
 
     /// <summary>
@@ -214,18 +222,31 @@ public abstract partial class SharedStunSystem
 
         if (entity.Comp.NextUpdate < GameTiming.CurTime)
         {
-            SetKnockdownTime((entity, entity.Comp), GameTiming.CurTime + time);
+            SetKnockdownNextUpdate((entity, entity.Comp), GameTiming.CurTime + time);
             return;
         }
 
-        entity.Comp.NextUpdate += time;
-        DirtyField(entity, entity.Comp, nameof(KnockedDownComponent.NextUpdate));
-        Alerts.ShowAlert(entity, KnockdownAlert, null, (GameTiming.CurTime, entity.Comp.NextUpdate));
+        SetKnockdownNextUpdate((entity, entity.Comp), entity.Comp.NextUpdate + time);
     }
 
     #endregion
 
     #region Knockdown Logic
+
+    /// <summary>
+    /// Sets the next update datafield of an entity's <see cref="KnockedDownComponent"/> to a specific time.
+    /// </summary>
+    /// <param name="entity">Entity whose timer we're updating</param>
+    /// <param name="time">The exact time we're setting the next update to.</param>
+    private void SetKnockdownNextUpdate(Entity<KnockedDownComponent> entity, TimeSpan time)
+    {
+        if (GameTiming.CurTime > time)
+            time = GameTiming.CurTime;
+
+        entity.Comp.NextUpdate = time;
+        DirtyField(entity, entity.Comp, nameof(KnockedDownComponent.NextUpdate));
+        Alerts.UpdateAlert(entity.Owner, KnockdownAlert, null, entity.Comp.NextUpdate);
+    }
 
     private void HandleToggleKnockdown(ICommonSession? session)
     {
@@ -365,8 +386,17 @@ public abstract partial class SharedStunSystem
         if (!TryStand(entity))
             return true;
 
-        if (!IntersectingStandingColliders(entity.Owner))
+        if (!IntersectingStandingColliders(entity.Owner, out var collider))
             return false;
+
+        // Floofstation - if colliding, try to climb it instead
+        if (TryComp<ClimbableComponent>(collider.Value, out var colliderClimb)
+            && _climb.CanVault(colliderClimb, entity, collider.Value, out _))
+        {
+            // Try to climb on the next tick. We have to finish standing up first.
+            Robust.Shared.Timing.Timer.Spawn(0, () => _climb.ForciblySetClimbing(entity, collider.Value));
+            return false;
+        }
 
         _popup.PopupClient(Loc.GetString("knockdown-component-stand-no-room"), entity, entity, PopupType.SmallCaution);
         SetAutoStand(entity.Owner);
@@ -444,8 +474,9 @@ public abstract partial class SharedStunSystem
     ///     Checks if standing would cause us to collide with something and potentially get stuck.
     ///     Returns true if we will collide with something, and false if we will not.
     /// </summary>
-    private bool IntersectingStandingColliders(Entity<TransformComponent?> entity)
+    private bool IntersectingStandingColliders(Entity<TransformComponent?> entity, [NotNullWhen(true)] out EntityUid? collider)
     {
+        collider = null; // Floofstation - added an output collider param
         if (!Resolve(entity, ref entity.Comp))
             return false;
 
@@ -478,7 +509,10 @@ public abstract partial class SharedStunSystem
                 {
                     var intersection = fixture.Shape.ComputeAABB(xform, i).IntersectPercentage(ourAABB);
                     if (intersection > 0.1f)
+                    {
+                        collider = ent; // Floofstation
                         return true;
+                    }
                 }
             }
         }
