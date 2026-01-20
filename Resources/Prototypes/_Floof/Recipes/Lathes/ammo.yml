@@ -6,8 +6,8 @@
     Steel: 800
 
 - type: latheRecipe
-  id: MagazinePistolCaselessRifle
-  result: MagazinePistolCaselessRifle
+  id: MagazinePistolCaselessRifleSubsonic
+  result: MagazinePistolCaselessRifleSubsonic
   materials:
     Steel: 500
 
@@ -17,4 +17,4 @@
   result: MagazineBoxAntiMateriel
   completetime: 5
   materials:
-    Steel: 2000
+    Steel: 1000
