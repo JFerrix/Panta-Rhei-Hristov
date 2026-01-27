@@ -1,0 +1,59 @@
+# Anything human specific (e.g. UI, input) goes under MobHuman
+- type: entity
+  parent: BaseMobSpeciesTaurOrganic
+  id: BaseMobArachne
+  name: Urist McArachne
+  abstract: true
+  components:
+  - type: Hunger
+  - type: Icon # It will not have an icon in the adminspawn menu without this. Body parts seem fine for whatever reason.
+    sprite: Mobs/Species/Human/parts.rsi
+    state: full
+  - type: Body
+    prototype: Arachne
+    requiredLegs: 0
+  - type: Thirst
+  - type: Butcherable
+    butcheringType: Spike
+    spawned:
+    - id: FoodMeatHuman
+      amount: 5
+  - type: HumanoidAppearance
+    species: Human
+    hideLayersOnEquip:
+    - Hair
+    - Snout
+  - type: Inventory
+    templateId: anytaur
+    femaleDisplacements: # Floof - displacements
+       jumpsuit:
+         sizeMaps:
+           32:
+             sprite: _Floof/Mobs/Species/arachne/displacement.rsi
+             state: jumpsuit
+    maleDisplacements: # Floof - displacements
+       jumpsuit:
+         sizeMaps:
+           32:
+             sprite: _Floof/Mobs/Species/arachne/displacement.rsi
+             state: jumpsuit
+
+- type: entity
+  parent: BaseSpeciesDummyTaur
+  id: MobArachneDummy
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Inventory
+    templateId: anytaur
+    femaleDisplacements: # Floof - displacements
+       jumpsuit:
+         sizeMaps:
+           32:
+             sprite: _Floof/Mobs/Species/arachne/displacement.rsi
+             state: jumpsuit
+    maleDisplacements: # Floof - displacements
+       jumpsuit:
+         sizeMaps:
+           32:
+             sprite: _Floof/Mobs/Species/arachne/displacement.rsi
+             state: jumpsuit

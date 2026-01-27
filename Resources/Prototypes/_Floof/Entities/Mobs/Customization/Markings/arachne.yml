@@ -1,0 +1,9 @@
+# SpiderBody
+- type: marking
+  id: ArachneBody1
+  bodyPart: TaurBody
+  markingCategory: TaurBody
+  speciesRestriction: [Arachne]
+  sprites:
+  - sprite: _Floof/Mobs/Species/Arachne/parts.rsi
+    state: "spider_body_combined"

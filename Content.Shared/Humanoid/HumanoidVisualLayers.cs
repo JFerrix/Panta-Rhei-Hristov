@@ -34,6 +34,6 @@ namespace Content.Shared.Humanoid
         Fire,
         LArmExtension, // Frontier: a species-specific extension layer, e.g. for harpy wings
         RArmExtension, // Frontier: a species-specific extension layer, e.g. for harpy wings
-
+        TaurBody// Floof: Required as "Mini-framework" for tauric species
     }
 }
