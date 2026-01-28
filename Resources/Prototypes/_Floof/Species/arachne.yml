@@ -25,7 +25,7 @@
     Snout: MobHumanoidAnyMarking
     UndergarmentTop: MobHumanoidAnyMarking
     UndergarmentBottom: MobHumanoidAnyMarking
-    Chest: MobHumanTorso
+    Chest: MobTaurTorso
     Eyes: MobHumanoidEyes
     HeadTop: MobHumanoidAnyMarking
     LArm: MobHumanLArm
@@ -69,6 +69,10 @@
       points: 1
       required: true
       defaultMarkings: [ ArachneBody1 ]
+    TaurBodyConnector:
+      points: 1
+      required: true
+      defaultMarkings: [ ArachneBodyConnector ]
     Arms:
       points: 6 # DeltaV - was 2
       required: false
@@ -80,99 +84,20 @@
       state: spider_body_combined
 
 
-# - type: humanoidBaseSprite
-#   id: MobHumanoidEyes
-#   baseSprite:
-#     sprite: Mobs/Customization/eyes.rsi
-#     state: eyes
+- type: humanoidBaseSprite
+  id: MobTaurTorso
+  baseSprite:
+    sprite: _Floof/Mobs/Species/Taur/parts.rsi
+    state: torso_m
 
-# - type: humanoidBaseSprite
-#   id: MobHumanoidAnyMarking
+- type: humanoidBaseSprite
+  id: MobTaurTorsoMale
+  baseSprite:
+    sprite: _Floof/Mobs/Species/Taur/parts.rsi
+    state: torso_m
 
-# - type: humanoidBaseSprite
-#   id: MobHumanoidMarkingMatchSkin
-#   markingsMatchSkin: true
-
-# - type: humanoidBaseSprite
-#   id: MobHumanHead
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: head_m
-
-# - type: humanoidBaseSprite
-#   id: MobHumanHeadMale
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: head_m
-
-# - type: humanoidBaseSprite
-#   id: MobHumanHeadFemale
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: head_f
-
-# - type: humanoidBaseSprite
-#   id: MobHumanTorso
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: torso_m
-
-# - type: humanoidBaseSprite
-#   id: MobHumanTorsoMale
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: torso_m
-
-# - type: humanoidBaseSprite
-#   id: MobHumanTorsoFemale
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: torso_f
-
-# - type: humanoidBaseSprite
-#   id: MobHumanLLeg
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: l_leg
-
-# - type: humanoidBaseSprite
-#   id: MobHumanLArm
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: l_arm
-
-# - type: humanoidBaseSprite
-#   id: MobHumanLHand
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: l_hand
-
-# - type: humanoidBaseSprite
-#   id: MobHumanLFoot
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: l_foot
-
-# - type: humanoidBaseSprite
-#   id: MobHumanRLeg
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: r_leg
-
-# - type: humanoidBaseSprite
-#   id: MobHumanRArm
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: r_arm
-
-# - type: humanoidBaseSprite
-#   id: MobHumanRHand
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: r_hand
-
-# - type: humanoidBaseSprite
-#   id: MobHumanRFoot
-#   baseSprite:
-#     sprite: Mobs/Species/Human/parts.rsi
-#     state: r_foot
+- type: humanoidBaseSprite
+  id: MobTaurTorsoFemale
+  baseSprite:
+    sprite: _Floof/Mobs/Species/Taur/parts.rsi
+    state: torso_f

@@ -10,4 +10,5 @@
   - type: BodyPart
     partType: Leg
     toolName: "spider legs" # Shitmed Change
+    slotId: legs
   - type: MovementBodyPart

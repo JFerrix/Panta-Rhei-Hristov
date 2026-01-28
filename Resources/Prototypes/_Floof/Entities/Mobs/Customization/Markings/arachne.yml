@@ -6,4 +6,12 @@
   speciesRestriction: [Arachne]
   sprites:
   - sprite: _Floof/Mobs/Species/Arachne/parts.rsi
-    state: "spider_body_combined"
+    state: "spider_body"
+- type: marking
+  id: ArachneBodyConnector
+  bodyPart: TaurBody
+  markingCategory: TaurBodyConnector
+  speciesRestriction: [Arachne]
+  sprites:
+  - sprite: _Floof/Mobs/Species/Arachne/parts.rsi
+    state: "spider_body_front"

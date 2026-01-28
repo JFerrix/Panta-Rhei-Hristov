@@ -11,7 +11,7 @@
     state: full
   - type: Body
     prototype: Arachne
-    requiredLegs: 0
+    requiredLegs: 1
   - type: Thirst
   - type: Butcherable
     butcheringType: Spike

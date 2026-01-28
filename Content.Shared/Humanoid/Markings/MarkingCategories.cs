@@ -6,6 +6,7 @@ namespace Content.Shared.Humanoid.Markings
     public enum MarkingCategories : byte
     {
         TaurBody,
+        TaurBodyConnector,
         Special,
         Hair,
         FacialHair,
@@ -55,6 +56,7 @@ namespace Content.Shared.Humanoid.Markings
                 HumanoidVisualLayers.Tail => MarkingCategories.Tail,
                 HumanoidVisualLayers.RArmExtension => MarkingCategories.Arms, // Frontier: species-specific layer
                 HumanoidVisualLayers.LArmExtension => MarkingCategories.Arms, // Frontier: species-specific layer
+                HumanoidVisualLayers.TaurBodyConnector => MarkingCategories.TaurBodyConnector, // Floof: species-specific layer
                 HumanoidVisualLayers.TaurBody => MarkingCategories.TaurBody, // Floof: species-specific layer
                 _ => MarkingCategories.Overlay
             };

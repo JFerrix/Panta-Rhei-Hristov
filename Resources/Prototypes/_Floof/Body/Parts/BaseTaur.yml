@@ -30,4 +30,5 @@
   - type: BodyPart
     partType: Leg
     toolName: "taur Legs" # Shitmed Change
+    slotId: legs
   - type: MovementBodyPart

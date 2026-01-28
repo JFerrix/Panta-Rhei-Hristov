@@ -17,7 +17,7 @@
       connections:
       - right arm
       - left arm
-      - Taur Legs
+      - legs
       - head # Shitmed
       organs:
         heart: OrganHumanHeart
@@ -37,5 +37,5 @@
       part: RightHandHuman
     left hand:
       part: LeftHandHuman
-    Taur Legs:
+    legs:
       part: TaurLegs
