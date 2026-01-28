@@ -1,4 +1,4 @@
-﻿## Species Names
+# Species Names
 
 species-name-resomi = Resomi
 species-name-shadowkin = Shadekin
