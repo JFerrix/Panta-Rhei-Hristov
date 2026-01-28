@@ -7,7 +7,7 @@
   #Adjust
   - type: Icon # Shitmed Change
     sprite: _Floof/Mobs/Species/Arachne/parts.rsi
-    state: "spider_body_combined"
+    state: "spider_body"
   - type: BodyPart # Shitmed Change
     species: BaseTaur
   - type: Extractable

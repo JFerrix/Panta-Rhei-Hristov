@@ -81,7 +81,7 @@
   id: ArachneMarking
   baseSprite:
       sprite: _Floof/Mobs/Species/Arachne/parts.rsi
-      state: spider_body_combined
+      state: spider_body
 
 
 - type: humanoidBaseSprite
