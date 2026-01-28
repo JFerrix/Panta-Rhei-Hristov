@@ -14,10 +14,6 @@
     {
      "name": "spider_body_front",
      "directions": 4
-    },
-    {
-     "name": "spider_body_combined",
-     "directions": 4
     }
   ]
 }
