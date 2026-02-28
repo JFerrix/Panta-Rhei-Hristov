@@ -49,7 +49,8 @@
     TaurBody:
       points: 1
       required: true
-      defaultMarkings: [ ArachneBody1 ]
+      defaultMarkings: [ ArachneBody1 ] # This will bite me in the ass later because of the way default markings work that marking will always be underneath the main marking.
+                                        # Probably gotta delete it like with harpies. Wont look good but work
     TaurBodyConnector:
       points: 1
       required: true
