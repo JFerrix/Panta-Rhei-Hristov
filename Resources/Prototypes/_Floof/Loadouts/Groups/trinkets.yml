@@ -11,8 +11,6 @@
   - RockGuitarInstrument
   - HarmonicaInstrument
   - TrumpetInstrument
-  - Blunt
-  - Joint
   - CrowbarRed
   - FlashlightLantern
   - DoubleEmergencyOxygenTankFilled
@@ -39,3 +37,6 @@
   - LewdFleshlightRed
   - LewdFleshlightTeal
   - LewdFleshlightYellow
+  - LewdWand
+  - LuxuryPen
+  - Paper
