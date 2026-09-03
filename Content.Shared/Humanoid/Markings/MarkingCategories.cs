@@ -33,7 +33,8 @@ namespace Content.Shared.Humanoid.Markings
         RFoot,
         Tail,
         Wings,
-        Overlay
+        Overlay,
+        Genital
     }
 
     public static class MarkingCategoriesConversion
