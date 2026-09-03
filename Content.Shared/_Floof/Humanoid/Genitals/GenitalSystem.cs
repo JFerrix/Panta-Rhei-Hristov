@@ -9,9 +9,9 @@ namespace Content.Shared._Floof.Humanoid.Genital;
 //Get Consent data for GenitalVisibility - DONE
 //Show/Hide Genitals based on consent switch - DONE
 //TODO:
-//Add verb functionality
+//Add verb functionality - Skipped since piggybacking off the Undies System. Well, guess it was inevitable
 //Get events for filling and emptying the suit and oversuit slot and show/hide markings depending on if filled or not
-//Implement a way to hide/show specific and multiple markings
+//Implement a way to hide/show specific and multiple markings - Skipped since piggyback on undies system
 
 public sealed class GenitalSystem : EntitySystem
 {
@@ -24,7 +24,6 @@ public sealed class GenitalSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<GenitalComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<GenitalComponent, EntityConsentToggleUpdatedEvent>(OnConsentToggle);
-        SubscribeLocalEvent<GenitalComponent, GetVerbsEvent<Verb>>(AddGenitalVerb);
     }
     
     private void OnStartup(EntityUid uid, GenitalComponent component, ComponentStartup args)
@@ -38,15 +37,7 @@ public sealed class GenitalSystem : EntitySystem
         _humanoidSystem.SetLayerVisibility(uid, HumanoidVisualLayers.Genital, !_consent.HasConsent(uid, "GenitalVisibility"));
     }
 
-    //TODO: Do the verb things
-    private void AddGenitalVerb(EntityUid uid, GenitalComponent component, GetVerbsEvent<Verb> args)
-    {
-        //You cannot modify someone elses genitals
-        var isUser = args.User == args.Target;
-        if(!isUser) return;
-    }
-
-    public void SetMarkingVisibility(Entity<HumanoidAppearanceComponent> ent, string markingId, bool visible)
+    private void SetMarkingVisibility(Entity<HumanoidAppearanceComponent> ent, string markingId, bool visible)
     {
         if (visible)
             ent.Comp.HiddenMarkings.Remove(markingId);

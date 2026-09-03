@@ -13,7 +13,8 @@ public sealed partial class ModifyUndiesComponent : Component
         new()
         {
             HumanoidVisualLayers.UndergarmentBottom,
-            HumanoidVisualLayers.UndergarmentTop
+            HumanoidVisualLayers.UndergarmentTop,
+            HumanoidVisualLayers.Genital
         };
 }
 

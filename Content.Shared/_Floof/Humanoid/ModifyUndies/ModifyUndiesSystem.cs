@@ -76,6 +76,7 @@ public sealed class ModifyUndiesSystem : EntitySystem
             {
                 HumanoidVisualLayers.UndergarmentTop => new(new("/Textures/_Floof/Interface/VerbIcons/bra.png")),
                 HumanoidVisualLayers.UndergarmentBottom => new(new("/Textures/_Floof/Interface/VerbIcons/underpants.png")),
+                HumanoidVisualLayers.Genital => new(new("/Textures/_Floof/Interface/VerbIcons/love.png")),
                 _ => new SpriteSpecifier.Texture(new("/Textures/_Floof/Interface/VerbIcons/undies.png"))
             };
 
