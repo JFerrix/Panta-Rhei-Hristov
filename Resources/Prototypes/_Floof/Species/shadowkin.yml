@@ -31,6 +31,7 @@
     UndergarmentTop: MobHumanoidAnyMarking
     UndergarmentBottom: MobHumanoidAnyMarking
     Chest: MobShadowkinTorso
+    Genital: MobHumanoidAnyMarking
     Wings: MobHumanoidAnyMarking
     Eyes: MobShadowkinEyes
     LArm: MobShadowkinLArm

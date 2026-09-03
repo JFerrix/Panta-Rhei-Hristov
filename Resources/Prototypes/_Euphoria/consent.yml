@@ -7,3 +7,8 @@
   id: CantSmellScentsAtAll
   name: Prevent Smelling of ALL scents
   description: Toggling this will remove scent popups that may be distracting or immersion-breaking.
+
+- type: consentToggle
+  id: GenitalVisibility
+  name: Genital Visibility
+  description: Toggle this to see genital markings on characters (yours included).

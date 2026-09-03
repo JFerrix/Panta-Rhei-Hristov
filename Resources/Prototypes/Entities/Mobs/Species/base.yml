@@ -241,6 +241,7 @@
   - type: ModifyUndies
   # Floofstation section end
   - type: RMCSetPose # DeltaV - RMC pose port
+  - type: Genital # Euphoria - Does the consent thing
 
 - type: entity
   save: false
