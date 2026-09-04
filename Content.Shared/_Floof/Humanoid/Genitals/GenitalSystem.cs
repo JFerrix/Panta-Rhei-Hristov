@@ -25,7 +25,7 @@ public sealed class GenitalSystem : EntitySystem
         SubscribeLocalEvent<GenitalComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<GenitalComponent, EntityConsentToggleUpdatedEvent>(OnConsentToggle);
     }
-    
+    //Todo Problem: System only works on the user, everyone elses genitals are still visible. Not great
     private void OnStartup(EntityUid uid, GenitalComponent component, ComponentStartup args)
     {
         _humanoidSystem.SetLayerVisibility(uid, HumanoidVisualLayers.Genital, _consent.HasConsent(uid, "GenitalVisibility"));
