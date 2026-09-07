@@ -2,16 +2,23 @@ using Content.Shared._Common.Consent;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Verbs;
+using Content.Shared.GameTicking;
 
 namespace Content.Shared._Floof.Humanoid.Genital;
 
 //Done:
 //Get Consent data for GenitalVisibility - DONE
 //Show/Hide Genitals based on consent switch - DONE
-//TODO:
+//Skipped:
 //Add verb functionality - Skipped since piggybacking off the Undies System. Well, guess it was inevitable
-//Get events for filling and emptying the suit and oversuit slot and show/hide markings depending on if filled or not
 //Implement a way to hide/show specific and multiple markings - Skipped since piggyback on undies system
+//TODO:
+//Get events for filling and emptying the suit and oversuit slot and show/hide markings depending on if filled or not
+//Only works on own character. Find a way to get every object with that component and run the consent toggle one on every entity with this component
+//Check if SetLayerVisibility is clientside or serverside
+
+//Problems:
+//Respawning forces the visibility to off but doesnt update consent system, requiring manually resetting the switch
 
 public sealed class GenitalSystem : EntitySystem
 {
@@ -25,16 +32,28 @@ public sealed class GenitalSystem : EntitySystem
         SubscribeLocalEvent<GenitalComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<GenitalComponent, EntityConsentToggleUpdatedEvent>(OnConsentToggle);
     }
-    //Todo Problem: System only works on the user, everyone elses genitals are still visible. Not great
+    //Main methods
     private void OnStartup(EntityUid uid, GenitalComponent component, ComponentStartup args)
     {
-        _humanoidSystem.SetLayerVisibility(uid, HumanoidVisualLayers.Genital, _consent.HasConsent(uid, "GenitalVisibility"));
+        component.ConsentState = false;
+        UpdateAll(component);
     }
 
     private void OnConsentToggle(EntityUid uid, GenitalComponent component, EntityConsentToggleUpdatedEvent args)
     {
-        //WHY THE FUCK DOES IT REQUIRE A BOOL INVERT BUT THE ONE ABOVE DOESNT?
-        _humanoidSystem.SetLayerVisibility(uid, HumanoidVisualLayers.Genital, !_consent.HasConsent(uid, "GenitalVisibility"));
+        component.ConsentState = !_consent.HasConsent(uid, "GenitalVisibility");
+        UpdateAll(component);
+    }
+    
+
+    //Secondary Methods
+    private void UpdateAll(GenitalComponent MainComponent)
+    {
+        var query = AllEntityQuery<GenitalComponent>();
+        while (query.MoveNext(out var uid, out var component))
+        {
+            _humanoidSystem.SetLayerVisibility(uid, HumanoidVisualLayers.Genital, MainComponent.ConsentState);
+        }
     }
 
     private void SetMarkingVisibility(Entity<HumanoidAppearanceComponent> ent, string markingId, bool visible)

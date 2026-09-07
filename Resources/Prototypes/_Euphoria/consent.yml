@@ -11,4 +11,4 @@
 - type: consentToggle
   id: GenitalVisibility
   name: Genital Visibility
-  description: Toggle this to see genital markings on characters (yours included).
+  description: Toggle this to see genital markings on characters (yours included). If you dont see markings but you should, flip the switch off and on again
