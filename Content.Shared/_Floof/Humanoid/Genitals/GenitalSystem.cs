@@ -1,8 +1,6 @@
 using Content.Shared._Common.Consent;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
-using Content.Shared.Verbs;
-using Content.Shared.GameTicking;
 
 namespace Content.Shared._Floof.Humanoid.Genital;
 
